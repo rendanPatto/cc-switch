@@ -125,7 +125,7 @@ pub fn create_anthropic_sse_stream(
                         }
 
                         for l in line.lines() {
-                            if let Some(data) = l.strip_prefix("data: ") {
+                            if let Some(data) = parse_sse_data(l) {
                                 if data.trim() == "[DONE]" {
                                     log::debug!("[Claude/OpenRouter] <<< OpenAI SSE: [DONE]");
                                     let event = json!({"type": "message_stop"});
