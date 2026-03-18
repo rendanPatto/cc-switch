@@ -8,6 +8,13 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::collections::{HashMap, HashSet};
 
+/// 解析 SSE data 行，支持 "data: " 和 "data:" 两种格式
+fn parse_sse_data(line: &str) -> Option<&str> {
+    line.strip_prefix("data: ")
+        .or_else(|| line.strip_prefix("data:"))
+        .map(|s| s.trim_start())
+}
+
 /// OpenAI 流式响应数据结构
 #[derive(Debug, Deserialize)]
 struct OpenAIStreamChunk {
