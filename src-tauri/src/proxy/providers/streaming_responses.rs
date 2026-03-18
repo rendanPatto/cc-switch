@@ -12,7 +12,15 @@ use super::transform_responses::{build_anthropic_usage_from_responses, map_respo
 use bytes::Bytes;
 use futures::stream::{Stream, StreamExt};
 use serde_json::{json, Value};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap, HashSet;
+
+/// 解析 SSE data 行，支持 "data: " 和 "data:" 两种格式
+#[inline]
+fn parse_sse_data(line: &str) -> Option<&str> {
+    line.strip_prefix("data: ")
+        .or_else(|| line.strip_prefix("data:"))
+        .map(|s| s.trim_start())
+}
 
 #[inline]
 fn response_object_from_event(data: &Value) -> &Value {
@@ -135,7 +143,7 @@ pub fn create_anthropic_sse_stream_from_responses(
                         for line in block.lines() {
                             if let Some(evt) = line.strip_prefix("event: ") {
                                 event_type = Some(evt.trim().to_string());
-                            } else if let Some(d) = line.strip_prefix("data: ") {
+                            } else if let Some(d) = parse_sse_data(line) {
                                 data_parts.push(d.to_string());
                             }
                         }
